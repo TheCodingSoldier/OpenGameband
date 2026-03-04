@@ -2,6 +2,8 @@ package org.opengameband.util;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -25,7 +27,8 @@ public class MountPoint {
                 return location.getParentFile();
             }
             return location;
-        } catch (Exception e) {
+        } catch (URISyntaxException | InvalidPathException e) {
+            System.err.println("Failed to resolve mount point from code source, falling back to user.dir: " + e.getMessage());
             return new File(System.getProperty("user.dir"));
         }
     }

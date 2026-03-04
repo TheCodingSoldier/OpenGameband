@@ -83,8 +83,10 @@ public class BasicLauncher implements Launcher {
                     e.printStackTrace();
 
                 }
+        } else if (osName.startsWith("windows")) {
+            // Windows launcher is downloaded as an executable and does not require extraction.
         } else if (osName.startsWith("linux")) {
-            throw new RuntimeException("Not Yet Implemented");
+            throw new UnsupportedOperationException("Linux launcher extraction is not yet implemented");
         }
     }
 
