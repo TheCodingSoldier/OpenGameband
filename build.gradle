@@ -60,7 +60,7 @@ publishing {
 }
 
 task nativePackage(type: PackageTask, dependsOn: build) {
-    mainClass = 'org.opengameband.OpenGameband'
+    mainClass = 'org.opengameband.Main'
     bundleJre = true
     generateInstaller = false
     administratorRequired = false

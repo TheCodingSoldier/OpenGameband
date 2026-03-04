@@ -4,9 +4,9 @@ package org.opengameband.util;
  * @author Zaprit
  */
 public enum DownloadURLs {
-    MAC("https://launcher.mojang.com/download/Minecraft.dmg", "/Minecraft.dmg"),
-    LIN("https://launcher.mojang.com/download/Minecraft.tar.gz", "/Minecraft.tar.gz"),
-    WIN("https://launcher.mojang.com/download/Minecraft.exe", "\\Minecraft.exe");
+    MAC("https://launcher.mojang.com/download/Minecraft.dmg", "Minecraft.dmg"),
+    LIN("https://launcher.mojang.com/download/Minecraft.tar.gz", "Minecraft.tar.gz"),
+    WIN("https://launcher.mojang.com/download/Minecraft.exe", "Minecraft.exe");
 
     private String url;
     private String file;

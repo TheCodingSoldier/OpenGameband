@@ -8,6 +8,7 @@ import org.opengameband.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
@@ -26,20 +27,29 @@ public class BasicLauncher implements Launcher {
 
     @Override
     public void start() throws LauncherFailiure {
+        File installDir = getInstallDir();
+        File gameDataDir = getGameDataDir();
+        if (installDir == null || gameDataDir == null) {
+            throw new LauncherFailiure("Launcher directories are not available");
+        }
         try {
-            switch (System.getProperty("os.name").split(" ")[0]) {
+            switch (getOsFamily()) {
                 case "Mac": {
-                    Runtime.getRuntime().exec(new String[]{GetMountPoint().getAbsolutePath() + "/Launchers/Official/Minecraft.app/Contents/MacOS/launcher",
+                    Runtime.getRuntime().exec(new String[]{new File(installDir, "Contents/MacOS/launcher").getAbsolutePath(),
                             "--workDir", getGameDataDir().getAbsolutePath()});
+                    break;
                 }
                 case "Windows": {
-                    Runtime.getRuntime().exec(new String[]{getInstallDir().getAbsolutePath() + "\\Minecraft.exe",
+                    Runtime.getRuntime().exec(new String[]{new File(installDir, "Minecraft.exe").getAbsolutePath(),
                             "--workDir", getGameDataDir().getAbsolutePath()});
+                    break;
                 }
+                default:
+                    throw new LauncherFailiure("Unsupported OS: " + System.getProperty("os.name"));
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
-            throw new LauncherFailiure();
+            throw new LauncherFailiure(e);
         }
     }
 
@@ -61,7 +71,7 @@ public class BasicLauncher implements Launcher {
     }
 
     private void extract(String file) {
-        switch (System.getProperty("os.name").split(" ")[0]) {
+        switch (getOsFamily()) {
             case "Mac":
                 try {
                     Process p = Runtime.getRuntime().exec("hdiutil attach " + file);
@@ -79,12 +89,14 @@ public class BasicLauncher implements Launcher {
                 break;
             case "Linux":
                 throw new RuntimeException("Not Yet Implemented");
+            default:
+                break;
         }
     }
 
     @Override
     public File getLauncherDir() {
-        return new File(GetMountPoint(), "/Launchers/Official");
+        return Path.of(GetMountPoint().getAbsolutePath(), "Launchers", "Official").toFile();
     }
 
     /**
@@ -93,11 +105,11 @@ public class BasicLauncher implements Launcher {
     @Override
     public File getInstallDir() {
         if (GetMountPoint().exists() && GetMountPoint().isDirectory() && GetMountPoint().canRead()) {
-            switch (System.getProperty("os.name").split(" ")[0]) {
+            switch (getOsFamily()) {
                 case "Windows":
-                    return new File(getLauncherDir(), "\\win");
+                    return new File(getLauncherDir(), "win");
                 case "Mac":
-                    return new File(GetMountPoint(), "/Launchers/Official/Minecraft.app");
+                    return new File(getLauncherDir(), "Minecraft.app");
             }
         }
         return null;
@@ -106,13 +118,29 @@ public class BasicLauncher implements Launcher {
     @Override
     public File getGameDataDir() {
         if (GetMountPoint().exists() && GetMountPoint().isDirectory()) {
-            return new File(GetMountPoint(), "/Launchers/Official/Game");
+            return new File(getLauncherDir(), "Game");
         }
         return null;
     }
 
     @Override
     public boolean isInstalled() {
-        return getInstallDir().exists() && getInstallDir().listFiles().length > 0;
+        File installDir = getInstallDir();
+        File[] installFiles = installDir == null ? null : installDir.listFiles();
+        return installDir != null && installDir.exists() && installFiles != null && installFiles.length > 0;
+    }
+
+    private String getOsFamily() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("win")) {
+            return "Windows";
+        }
+        if (os.contains("mac")) {
+            return "Mac";
+        }
+        if (os.contains("linux")) {
+            return "Linux";
+        }
+        return "Unknown";
     }
 }
