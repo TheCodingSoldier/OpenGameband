@@ -126,7 +126,8 @@ public class BasicLauncher implements Launcher {
     @Override
     public boolean isInstalled() {
         File installDir = getInstallDir();
-        return installDir != null && installDir.exists() && installDir.listFiles() != null && installDir.listFiles().length > 0;
+        File[] installFiles = installDir == null ? null : installDir.listFiles();
+        return installDir != null && installDir.exists() && installFiles != null && installFiles.length > 0;
     }
 
     private String getOsFamily() {
