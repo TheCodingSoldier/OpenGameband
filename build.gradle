@@ -29,6 +29,7 @@ repositories {
 }
 dependencies {
     implementation 'org.hid4java:hid4java:0.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
 jar {
@@ -44,6 +45,10 @@ jar {
 
 application {
     mainClass = "org.opengameband.Main"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 group = 'org.vorax.henry.OpenGameband'

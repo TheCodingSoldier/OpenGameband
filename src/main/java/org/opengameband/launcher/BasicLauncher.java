@@ -1,6 +1,6 @@
 package org.opengameband.launcher;
 
-import org.opengameband.*;
+import org.opengameband.Main;
 import org.opengameband.exceptions.LauncherFailiure;
 import org.opengameband.util.DownloadURLs;
 import org.opengameband.util.Downloader;
@@ -9,9 +9,7 @@ import org.opengameband.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.opengameband.util.MountPoint.GetMountPoint;
 
@@ -24,18 +22,27 @@ public class BasicLauncher implements Launcher {
     public BasicLauncher() {
     }
 
+    private String getOSName() {
+        return System.getProperty("os.name").toLowerCase();
+    }
+
     @Override
     public void start() throws LauncherFailiure {
+        File installDir = getInstallDir();
+        File gameDataDir = getGameDataDir();
+        if (installDir == null || gameDataDir == null) {
+            throw new LauncherFailiure();
+        }
         try {
-            switch (System.getProperty("os.name").split(" ")[0]) {
-                case "Mac": {
-                    Runtime.getRuntime().exec(new String[]{GetMountPoint().getAbsolutePath() + "/Launchers/Official/Minecraft.app/Contents/MacOS/launcher",
-                            "--workDir", getGameDataDir().getAbsolutePath()});
-                }
-                case "Windows": {
-                    Runtime.getRuntime().exec(new String[]{getInstallDir().getAbsolutePath() + "\\Minecraft.exe",
-                            "--workDir", getGameDataDir().getAbsolutePath()});
-                }
+            String osName = getOSName();
+            if (osName.startsWith("mac")) {
+                Runtime.getRuntime().exec(new String[]{new File(installDir, "Contents/MacOS/launcher").getAbsolutePath(),
+                        "--workDir", gameDataDir.getAbsolutePath()});
+            } else if (osName.startsWith("windows")) {
+                Runtime.getRuntime().exec(new String[]{new File(installDir, "Minecraft.exe").getAbsolutePath(),
+                        "--workDir", gameDataDir.getAbsolutePath()});
+            } else {
+                throw new LauncherFailiure();
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -61,8 +68,8 @@ public class BasicLauncher implements Launcher {
     }
 
     private void extract(String file) {
-        switch (System.getProperty("os.name").split(" ")[0]) {
-            case "Mac":
+        String osName = getOSName();
+        if (osName.startsWith("mac")) {
                 try {
                     Process p = Runtime.getRuntime().exec("hdiutil attach " + file);
                     byte[] inputBytes = p.getInputStream().readAllBytes();
@@ -76,15 +83,16 @@ public class BasicLauncher implements Launcher {
                     e.printStackTrace();
 
                 }
-                break;
-            case "Linux":
-                throw new RuntimeException("Not Yet Implemented");
+        } else if (osName.startsWith("windows")) {
+            // Windows launcher is downloaded as an executable and does not require extraction.
+        } else if (osName.startsWith("linux")) {
+            throw new UnsupportedOperationException("Linux launcher extraction is not yet implemented");
         }
     }
 
     @Override
     public File getLauncherDir() {
-        return new File(GetMountPoint(), "/Launchers/Official");
+        return new File(GetMountPoint(), "Launchers/Official");
     }
 
     /**
@@ -93,11 +101,12 @@ public class BasicLauncher implements Launcher {
     @Override
     public File getInstallDir() {
         if (GetMountPoint().exists() && GetMountPoint().isDirectory() && GetMountPoint().canRead()) {
-            switch (System.getProperty("os.name").split(" ")[0]) {
-                case "Windows":
-                    return new File(getLauncherDir(), "\\win");
-                case "Mac":
-                    return new File(GetMountPoint(), "/Launchers/Official/Minecraft.app");
+            String osName = getOSName();
+            if (osName.startsWith("windows")) {
+                return new File(getLauncherDir(), "win");
+            }
+            if (osName.startsWith("mac")) {
+                return new File(getLauncherDir(), "Minecraft.app");
             }
         }
         return null;
@@ -106,13 +115,15 @@ public class BasicLauncher implements Launcher {
     @Override
     public File getGameDataDir() {
         if (GetMountPoint().exists() && GetMountPoint().isDirectory()) {
-            return new File(GetMountPoint(), "/Launchers/Official/Game");
+            return new File(getLauncherDir(), "Game");
         }
         return null;
     }
 
     @Override
     public boolean isInstalled() {
-        return getInstallDir().exists() && getInstallDir().listFiles().length > 0;
+        File installDir = getInstallDir();
+        File[] files = installDir == null ? null : installDir.listFiles();
+        return installDir != null && installDir.exists() && files != null && files.length > 0;
     }
 }
