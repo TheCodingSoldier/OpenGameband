@@ -96,9 +96,11 @@ public class BasicLauncher implements Launcher {
 
     static Path resolveMountedMinecraftApp(String hdiutilOutput) {
         for (String line : hdiutilOutput.split("\\R")) {
-            int mountPointIndex = line.indexOf("/Volumes/");
-            if (mountPointIndex >= 0) {
-                return Paths.get(line.substring(mountPointIndex).trim(), "Minecraft.app");
+            for (String field : line.split("\\t")) {
+                String trimmedField = field.trim();
+                if (trimmedField.startsWith("/Volumes/")) {
+                    return Paths.get(trimmedField, "Minecraft.app");
+                }
             }
         }
         return null;

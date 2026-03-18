@@ -44,7 +44,7 @@ class BasicLauncherPathsTest {
     @Test
     void resolveMountedMinecraftAppParsesVolumePath() {
         String hdiutilOutput = "/dev/disk4\tGUID_partition_scheme\n"
-                + "/dev/disk4s1\tApple_HFS\t/Volumes/Minecraft Installer\n";
+                + "/dev/disk4s1\tApple_HFS\t/Volumes/Minecraft Installer\t(extra metadata)\n";
 
         Path mountedPath = BasicLauncher.resolveMountedMinecraftApp(hdiutilOutput);
 
