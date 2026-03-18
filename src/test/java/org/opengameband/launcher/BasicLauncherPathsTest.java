@@ -4,8 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.opengameband.util.MountPoint;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BasicLauncherPathsTest {
@@ -36,5 +39,20 @@ class BasicLauncherPathsTest {
         File mountPoint = MountPoint.GetMountPoint();
         assertTrue(mountPoint.exists());
         assertTrue(mountPoint.isDirectory());
+    }
+
+    @Test
+    void resolveMountedMinecraftAppParsesVolumePath() {
+        String hdiutilOutput = "/dev/disk4\tGUID_partition_scheme\n"
+                + "/dev/disk4s1\tApple_HFS\t/Volumes/Minecraft Installer\n";
+
+        Path mountedPath = BasicLauncher.resolveMountedMinecraftApp(hdiutilOutput);
+
+        assertEquals(Paths.get("/Volumes/Minecraft Installer", "Minecraft.app"), mountedPath);
+    }
+
+    @Test
+    void resolveMountedMinecraftAppReturnsNullWithoutVolume() {
+        assertNull(BasicLauncher.resolveMountedMinecraftApp("/dev/disk4\tGUID_partition_scheme\n"));
     }
 }

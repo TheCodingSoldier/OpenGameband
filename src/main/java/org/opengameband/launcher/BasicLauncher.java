@@ -8,6 +8,7 @@ import org.opengameband.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -71,13 +72,16 @@ public class BasicLauncher implements Launcher {
         String osName = getOSName();
         if (osName.startsWith("mac")) {
                 try {
-                    Process p = Runtime.getRuntime().exec("hdiutil attach " + file);
+                    Process p = Runtime.getRuntime().exec(new String[]{"hdiutil", "attach", file});
                     byte[] inputBytes = p.getInputStream().readAllBytes();
                     String stdin = new String(inputBytes);
                     System.out.println(stdin);
-                    System.out.println(stdin.substring(stdin.indexOf("/dev/disk")));
+                    Path mountedMinecraftApp = resolveMountedMinecraftApp(stdin);
+                    if (mountedMinecraftApp == null) {
+                        throw new IOException("Could not find mounted Minecraft.app path");
+                    }
                     Thread.sleep(1000);
-                    FileUtils.CopyDir(Paths.get("/Volumes/Minecraft/Minecraft.app"), getInstallDir().toPath());
+                    FileUtils.CopyDir(mountedMinecraftApp, getInstallDir().toPath());
 
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
@@ -88,6 +92,16 @@ public class BasicLauncher implements Launcher {
         } else if (osName.startsWith("linux")) {
             throw new UnsupportedOperationException("Linux launcher extraction is not yet implemented");
         }
+    }
+
+    static Path resolveMountedMinecraftApp(String hdiutilOutput) {
+        for (String line : hdiutilOutput.split("\\R")) {
+            int mountPointIndex = line.indexOf("/Volumes/");
+            if (mountPointIndex >= 0) {
+                return Paths.get(line.substring(mountPointIndex).trim(), "Minecraft.app");
+            }
+        }
+        return null;
     }
 
     @Override
