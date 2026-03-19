@@ -51,4 +51,17 @@ class DownloadURLsTest {
             System.setProperty("os.name", originalOsName);
         }
     }
+
+    @Test
+    void missingOsNameReturnsNullInsteadOfThrowing() {
+        String originalOsName = System.getProperty("os.name");
+        try {
+            System.clearProperty("os.name");
+            assertNull(DownloadURLs.getOSDownloadURL());
+        } finally {
+            if (originalOsName != null) {
+                System.setProperty("os.name", originalOsName);
+            }
+        }
+    }
 }

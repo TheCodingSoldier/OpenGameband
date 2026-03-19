@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Objects;
 
 import static org.opengameband.util.MountPoint.GetMountPoint;
@@ -25,7 +26,7 @@ public class BasicLauncher implements Launcher {
     }
 
     private String getOSName() {
-        return System.getProperty("os.name").toLowerCase();
+        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -35,17 +36,27 @@ public class BasicLauncher implements Launcher {
         if (installDir == null || gameDataDir == null) {
             throw new LauncherFailiure();
         }
+        if (!gameDataDir.exists() && !gameDataDir.mkdirs()) {
+            throw new LauncherFailiure();
+        }
         try {
             String osName = getOSName();
+            ProcessBuilder processBuilder;
             if (osName.startsWith("mac")) {
-                Runtime.getRuntime().exec(new String[]{new File(installDir, "Contents/MacOS/launcher").getAbsolutePath(),
-                        "--workDir", gameDataDir.getAbsolutePath()});
+                processBuilder = new ProcessBuilder(
+                        new File(installDir, "Contents/MacOS/launcher").getAbsolutePath(),
+                        "--workDir", gameDataDir.getAbsolutePath()
+                );
             } else if (osName.startsWith("windows")) {
-                Runtime.getRuntime().exec(new String[]{new File(installDir, "Minecraft.exe").getAbsolutePath(),
-                        "--workDir", gameDataDir.getAbsolutePath()});
+                processBuilder = new ProcessBuilder(
+                        new File(installDir, "Minecraft.exe").getAbsolutePath(),
+                        "--workDir", gameDataDir.getAbsolutePath()
+                );
             } else {
                 throw new LauncherFailiure();
             }
+            processBuilder.directory(installDir);
+            processBuilder.start();
         } catch (IOException e) {
             System.err.println(e.getMessage());
             throw new LauncherFailiure();
@@ -59,12 +70,16 @@ public class BasicLauncher implements Launcher {
 
     @Override
     public void install() {
-
-        if (!getInstallDir().mkdirs() && !getInstallDir().exists()) {
+        File installDir = getInstallDir();
+        if (installDir == null) {
+            return;
+        }
+        if (!installDir.mkdirs() && !installDir.exists()) {
             System.out.println("Not all subdirectories were created, some directories may already exist, or there might be permissions issues");
         }
-        System.out.println("Downloading launcher from " + Objects.requireNonNull(DownloadURLs.getOSDownloadURL()).getURL());
-        Downloader downloader = new Downloader(this::extract, DownloadURLs.getOSDownloadURL().getURL(), new File(getInstallDir(), DownloadURLs.getOSDownloadURL().getFile()).getAbsolutePath());
+        DownloadURLs downloadURL = Objects.requireNonNull(DownloadURLs.getOSDownloadURL());
+        System.out.println("Downloading launcher from " + downloadURL.getURL());
+        Downloader downloader = new Downloader(this::extract, downloadURL.getURL(), new File(installDir, downloadURL.getFile()).getAbsolutePath());
         downloader.addPropertyChangeListener(Main.getWindow());
         downloader.execute();
     }
@@ -146,7 +161,8 @@ public class BasicLauncher implements Launcher {
      */
     @Override
     public File getInstallDir() {
-        if (GetMountPoint().exists() && GetMountPoint().isDirectory() && GetMountPoint().canRead()) {
+        File mountPoint = GetMountPoint();
+        if (mountPoint.exists() && mountPoint.isDirectory() && mountPoint.canRead()) {
             String osName = getOSName();
             if (osName.startsWith("windows")) {
                 return new File(getLauncherDir(), "win");
@@ -160,7 +176,8 @@ public class BasicLauncher implements Launcher {
 
     @Override
     public File getGameDataDir() {
-        if (GetMountPoint().exists() && GetMountPoint().isDirectory()) {
+        File mountPoint = GetMountPoint();
+        if (mountPoint.exists() && mountPoint.isDirectory() && mountPoint.canRead()) {
             return new File(getLauncherDir(), "Game");
         }
         return null;

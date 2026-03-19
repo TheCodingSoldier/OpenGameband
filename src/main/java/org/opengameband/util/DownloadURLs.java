@@ -1,5 +1,7 @@
 package org.opengameband.util;
 
+import java.util.Locale;
+
 /**
  * @author Zaprit
  */
@@ -26,7 +28,7 @@ public enum DownloadURLs {
     }
 
     public static DownloadURLs getOSDownloadURL() {
-        String osName = System.getProperty("os.name").toLowerCase();
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         if (osName.contains("windows")) {
             return WIN;
         }
