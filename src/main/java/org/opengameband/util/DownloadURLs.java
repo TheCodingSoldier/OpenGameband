@@ -26,13 +26,15 @@ public enum DownloadURLs {
     }
 
     public static DownloadURLs getOSDownloadURL() {
-        switch (System.getProperty("os.name").split(" ")[0]) {
-            case "Windows":
-                return WIN;
-            case "Mac":
-                return MAC;
-            case "Linux":
-                return LIN;
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.contains("windows")) {
+            return WIN;
+        }
+        if (osName.contains("mac")) {
+            return MAC;
+        }
+        if (osName.contains("linux")) {
+            return LIN;
         }
         return null;
     }

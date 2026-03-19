@@ -8,6 +8,8 @@ import org.opengameband.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -71,13 +73,25 @@ public class BasicLauncher implements Launcher {
         String osName = getOSName();
         if (osName.startsWith("mac")) {
                 try {
-                    Process p = Runtime.getRuntime().exec("hdiutil attach " + file);
+                    Path downloadedImage = Paths.get(file);
+                    String downloadedImageName = downloadedImage.getFileName() == null ? "" : downloadedImage.getFileName().toString().toLowerCase();
+                    if (!Files.isRegularFile(downloadedImage) || !downloadedImageName.endsWith(".dmg")) {
+                        throw new IOException("Invalid DMG file: " + file);
+                    }
+                    Process p = Runtime.getRuntime().exec(new String[]{"hdiutil", "attach", file});
                     byte[] inputBytes = p.getInputStream().readAllBytes();
                     String stdin = new String(inputBytes);
                     System.out.println(stdin);
-                    System.out.println(stdin.substring(stdin.indexOf("/dev/disk")));
+                    Path mountedMinecraftApp = resolveMountedMinecraftApp(stdin);
+                    if (mountedMinecraftApp == null) {
+                        throw new IOException("Could not find mounted Minecraft.app path");
+                    }
+                    mountedMinecraftApp = resolveInstalledMacAppBundle(mountedMinecraftApp);
+                    if (mountedMinecraftApp == null) {
+                        throw new IOException("Could not find a .app bundle in mounted volume");
+                    }
                     Thread.sleep(1000);
-                    FileUtils.CopyDir(Paths.get("/Volumes/Minecraft/Minecraft.app"), getInstallDir().toPath());
+                    FileUtils.CopyDir(mountedMinecraftApp, getInstallDir().toPath());
 
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
@@ -88,6 +102,38 @@ public class BasicLauncher implements Launcher {
         } else if (osName.startsWith("linux")) {
             throw new UnsupportedOperationException("Linux launcher extraction is not yet implemented");
         }
+    }
+
+    static Path resolveMountedMinecraftApp(String hdiutilOutput) {
+        for (String line : hdiutilOutput.split("\\R")) {
+            for (String field : line.split("\\t")) {
+                String trimmedField = field.trim();
+                if (trimmedField.startsWith("/Volumes/")) {
+                    return Paths.get(trimmedField, "Minecraft.app");
+                }
+            }
+        }
+        return null;
+    }
+
+    static Path resolveInstalledMacAppBundle(Path preferredMinecraftApp) {
+        if (preferredMinecraftApp.toFile().exists()) {
+            return preferredMinecraftApp;
+        }
+
+        Path parentPath = preferredMinecraftApp.getParent();
+        if (parentPath == null) {
+            return null;
+        }
+        File mountDir = parentPath.toFile();
+        if (!mountDir.isDirectory()) {
+            return null;
+        }
+        File[] appBundles = mountDir.listFiles((dir, name) -> name.endsWith(".app"));
+        if (appBundles == null || appBundles.length == 0) {
+            return null;
+        }
+        return appBundles[0].toPath();
     }
 
     @Override
