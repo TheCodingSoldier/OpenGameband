@@ -17,7 +17,13 @@ From the project root:
 python3 -m http.server 8080
 ```
 
-Then open:
+Then open (recommended):
+
+```
+http://localhost:8080/
+```
+
+Direct web path still works:
 
 ```
 http://localhost:8080/web/
