@@ -10,6 +10,9 @@ At some point a PixelForge replacement will be implemented, though this requires
 # Web USB App (No Download Required)
 This repository now includes a browser-based interface in `/web` so users can connect to a Gameband from a web page without installing the desktop launcher.
 
+## Open the website app
+If you host this repository as a static website, opening the site root will automatically redirect to the web app.
+
 ## Run locally
 From the project root:
 
@@ -17,7 +20,13 @@ From the project root:
 python3 -m http.server 8080
 ```
 
-Then open:
+Then open either:
+
+```
+http://localhost:8080/
+```
+
+or:
 
 ```
 http://localhost:8080/web/
