@@ -15,6 +15,7 @@ const disconnectButton = document.getElementById("disconnectButton");
 const sendButton = document.getElementById("sendButton");
 const readButton = document.getElementById("readButton");
 const clearLogButton = document.getElementById("clearLogButton");
+const switchMassStorageButton = document.getElementById("switchMassStorageButton");
 
 function setStatus(text) {
     statusElement.textContent = `Status: ${text}`;
@@ -126,6 +127,21 @@ async function readOnce() {
     appendLog(`Read ${result.data.byteLength} byte(s): ${toHexString(result.data)}`);
 }
 
+async function switchToMassStorageMode() {
+    await ensureDeviceReady();
+    const usbInterface = device.configuration?.interfaces.find(
+        (iface) => iface.interfaceNumber === INTERFACE_NUMBER
+    );
+    const hasMassStorageAlternate = usbInterface?.alternates?.some(
+        (alternate) => alternate.alternateSetting === 1
+    );
+    if (!hasMassStorageAlternate) {
+        throw new Error("This device does not expose a mass storage interface.");
+    }
+    await device.selectAlternateInterface(INTERFACE_NUMBER, 1);
+    appendLog("Requested USB mass storage mode via alternate interface 1.");
+}
+
 connectButton.addEventListener("click", async () => {
     try {
         await connect();
@@ -161,6 +177,14 @@ readButton.addEventListener("click", async () => {
 
 clearLogButton.addEventListener("click", () => {
     logElement.textContent = "";
+});
+
+switchMassStorageButton.addEventListener("click", async () => {
+    try {
+        await switchToMassStorageMode();
+    } catch (error) {
+        appendLog(`Mass storage mode error: ${error.message}`);
+    }
 });
 
 navigator.usb?.addEventListener("disconnect", (event) => {

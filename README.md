@@ -27,6 +27,7 @@ http://localhost:8080/web/
 - Uses the browser's [WebUSB](https://wicg.github.io/webusb/) API
 - Requests the Gameband USB device (`vendorId: 0x2a90`, `productId: 0x0021`)
 - Allows connecting, sending hex payloads, and reading responses
+- Includes a "Switch to Mass Storage" action that requests USB alternate interface 1 when the device exposes it
 
 ## Notes
 - WebUSB requires a secure context (`https://` or `http://localhost`)
