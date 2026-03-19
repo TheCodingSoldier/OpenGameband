@@ -47,6 +47,12 @@ button:hover {
     background: #4365a8;
 }
 
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #2a3b60;
+}
+
 input {
     width: 100%;
     box-sizing: border-box;

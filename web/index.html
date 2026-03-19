@@ -15,7 +15,7 @@
         <h2>Connection</h2>
         <div class="actions">
             <button id="connectButton" type="button">Connect</button>
-            <button id="disconnectButton" type="button">Disconnect</button>
+            <button id="disconnectButton" type="button" disabled>Disconnect</button>
         </div>
         <p id="status" class="status">Status: Not connected</p>
     </section>
@@ -24,13 +24,13 @@
         <h2>Send Hex Payload</h2>
         <label for="payloadInput">Hex bytes (example: <code>01 02 aa ff</code>)</label>
         <input id="payloadInput" type="text" placeholder="01 02 aa ff">
-        <button id="sendButton" type="button">Send</button>
+        <button id="sendButton" type="button" disabled>Send</button>
     </section>
 
     <section class="card">
         <h2>Read Response</h2>
         <div class="actions">
-            <button id="readButton" type="button">Read Once</button>
+            <button id="readButton" type="button" disabled>Read Once</button>
             <button id="clearLogButton" type="button">Clear Log</button>
         </div>
         <pre id="log" class="log" aria-live="polite"></pre>
@@ -40,7 +40,7 @@
         <h2>USB Mode</h2>
         <p>Switch the Gameband USB interface to mass storage mode when available.</p>
         <div class="actions">
-            <button id="switchMassStorageButton" type="button">Switch to Mass Storage</button>
+            <button id="switchMassStorageButton" type="button" disabled>Switch to Mass Storage</button>
         </div>
     </section>
 </main>

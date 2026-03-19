@@ -17,6 +17,14 @@ const readButton = document.getElementById("readButton");
 const clearLogButton = document.getElementById("clearLogButton");
 const switchMassStorageButton = document.getElementById("switchMassStorageButton");
 
+function updateActionStates(isConnected) {
+    connectButton.disabled = isConnected;
+    disconnectButton.disabled = !isConnected;
+    sendButton.disabled = !isConnected;
+    readButton.disabled = !isConnected;
+    switchMassStorageButton.disabled = !isConnected;
+}
+
 function setStatus(text) {
     statusElement.textContent = `Status: ${text}`;
 }
@@ -76,6 +84,7 @@ async function connect() {
 
     await ensureDeviceReady();
     setStatus(`Connected to ${device.productName || "Gameband"}`);
+    updateActionStates(true);
     appendLog("Connected.");
 }
 
@@ -99,6 +108,7 @@ async function disconnect() {
     }
     device = null;
     setStatus("Not connected");
+    updateActionStates(false);
     appendLog("Disconnected.");
 }
 
@@ -147,6 +157,7 @@ connectButton.addEventListener("click", async () => {
         await connect();
     } catch (error) {
         setStatus("Connection failed");
+        updateActionStates(false);
         appendLog(`Connect error: ${error.message}`);
     }
 });
@@ -192,5 +203,8 @@ navigator.usb?.addEventListener("disconnect", (event) => {
         appendLog("Device disconnected by system.");
         device = null;
         setStatus("Not connected");
+        updateActionStates(false);
     }
 });
+
+updateActionStates(false);
