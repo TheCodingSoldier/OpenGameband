@@ -10,23 +10,11 @@ At some point a PixelForge replacement will be implemented, though this requires
 # Web USB App (No Download Required)
 This repository now includes a browser-based interface in `/web` so users can connect to a Gameband from a web page without installing the desktop launcher.
 
-## Run locally
-From the project root:
-
-```bash
-python3 -m http.server 8080
-```
-
-Then open (recommended):
+## Open via website
+Use the hosted web app (no local hosting):
 
 ```
-http://localhost:8080/
-```
-
-Direct web path still works:
-
-```
-http://localhost:8080/web/
+https://thecodingsoldier.github.io/OpenGameband/
 ```
 
 ## How it works
@@ -36,5 +24,5 @@ http://localhost:8080/web/
 - Includes a "Switch to Mass Storage" action that requests USB alternate interface 1 when the device exposes it
 
 ## Notes
-- WebUSB requires a secure context (`https://` or `http://localhost`)
+- WebUSB requires a secure context (`https://`)
 - Browser support is currently best in Chromium-based browsers
