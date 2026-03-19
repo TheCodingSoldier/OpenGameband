@@ -55,7 +55,13 @@ async function ensureDeviceReady() {
         await device.selectConfiguration(1);
     }
 
-    await device.claimInterface(INTERFACE_NUMBER);
+    const usbInterface = device.configuration.interfaces.find(
+        (iface) => iface.interfaceNumber === INTERFACE_NUMBER
+    );
+
+    if (!usbInterface?.claimed) {
+        await device.claimInterface(INTERFACE_NUMBER);
+    }
 }
 
 async function connect() {
@@ -79,7 +85,12 @@ async function disconnect() {
     }
     if (device.opened) {
         try {
-            await device.releaseInterface(INTERFACE_NUMBER);
+            const usbInterface = device.configuration?.interfaces.find(
+                (iface) => iface.interfaceNumber === INTERFACE_NUMBER
+            );
+            if (usbInterface?.claimed) {
+                await device.releaseInterface(INTERFACE_NUMBER);
+            }
         } catch (error) {
             appendLog(`Interface release warning: ${error.message}`);
         }
